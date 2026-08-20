@@ -11,6 +11,7 @@ import {
 import { AppearanceController } from "./features/appearance.ts";
 import { ReadingAidsController } from "./features/reading-aids.ts";
 import { getBookId, isReaderPage } from "./platform/weread.ts";
+import { NativeReaderThemeController } from "./platform/native-reader.ts";
 import { READER_CSS } from "./styles/reader-css.ts";
 import { SettingsPanel } from "./ui/settings-panel.ts";
 
@@ -41,6 +42,7 @@ let bookScoped = hasBookProfile(currentBookId);
 let settings = loadResolvedSettings(currentBookId);
 const appearance = new AppearanceController();
 const readingAids = new ReadingAidsController();
+const nativeTheme = new NativeReaderThemeController();
 let panel: SettingsPanel | null = null;
 
 appearance.apply(settings);
@@ -48,6 +50,7 @@ appearance.apply(settings);
 function apply(next: BetterReadSettings, persist = true): void {
   settings = copySettings(next);
   appearance.apply(settings);
+  nativeTheme.apply(settings);
   readingAids.apply(settings);
   panel?.setState(settings, bookScoped, currentBookId);
   if (persist) saveScopedSettings(currentBookId, bookScoped, settings);
@@ -79,7 +82,7 @@ function refreshRoute(): void {
 }
 
 function cycleTheme(): void {
-  const order: ThemeId[] = ["paper", "sepia", "forest", "dark", "oled", "system"];
+  const order: ThemeId[] = ["paper", "sepia", "parchment", "bean", "forest", "midnight", "dark", "oled", "system"];
   const index = order.indexOf(settings.theme);
   apply({ ...settings, theme: order[(index + 1) % order.length] ?? "paper" });
 }

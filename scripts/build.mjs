@@ -24,6 +24,7 @@ await build({
   format: "iife",
   target: ["chrome110", "firefox115"],
   charset: "utf8",
+  define: { __BETTERREAD_VERSION__: JSON.stringify(packageJson.version) },
   legalComments: "none",
   sourcemap: false,
   banner: { js: metadata.trimEnd() },

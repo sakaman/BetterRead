@@ -1,7 +1,8 @@
-export const SETTINGS_VERSION = 1 as const;
+export const SETTINGS_VERSION = 2 as const;
 
-export type ThemeId = "paper" | "sepia" | "forest" | "dark" | "oled" | "system" | "custom";
-export type FontId = "system-sans" | "system-serif" | "source-serif" | "lxgw";
+export type ThemeId = "paper" | "sepia" | "parchment" | "bean" | "forest" | "midnight" | "dark" | "oled" | "system" | "custom";
+export type UiThemeId = "light" | "dark" | "system";
+export type FontId = "wechat-default" | "source-serif" | "source-sans" | "lxgw";
 export type TextAlign = "left" | "justify";
 
 export interface TypographySettings {
@@ -17,6 +18,7 @@ export interface TypographySettings {
 export interface BetterReadSettings {
   version: typeof SETTINGS_VERSION;
   enabled: boolean;
+  uiTheme: UiThemeId;
   theme: ThemeId;
   customBackground: string;
   customText: string;
@@ -32,13 +34,14 @@ export interface BetterReadSettings {
 export const DEFAULT_SETTINGS: BetterReadSettings = {
   version: SETTINGS_VERSION,
   enabled: true,
+  uiTheme: "system",
   theme: "paper",
   customBackground: "#f5f1e8",
   customText: "#2f2a24",
   accent: "#2f7d68",
   typography: {
-    font: "system-serif",
-    fontSize: 19,
+    font: "wechat-default",
+    fontSize: 18,
     lineHeight: 1.9,
     letterSpacing: 0.02,
     paragraphSpacing: 1.1,
@@ -52,9 +55,15 @@ export const DEFAULT_SETTINGS: BetterReadSettings = {
   shortcuts: true,
 };
 
-const themes = new Set<ThemeId>(["paper", "sepia", "forest", "dark", "oled", "system", "custom"]);
-const fonts = new Set<FontId>(["system-sans", "system-serif", "source-serif", "lxgw"]);
+const themes = new Set<ThemeId>(["paper", "sepia", "parchment", "bean", "forest", "midnight", "dark", "oled", "system", "custom"]);
+const uiThemes = new Set<UiThemeId>(["light", "dark", "system"]);
+const fonts = new Set<FontId>(["wechat-default", "source-serif", "source-sans", "lxgw"]);
 const alignments = new Set<TextAlign>(["left", "justify"]);
+
+function normalizeFont(value: unknown): FontId {
+  if (value === "system-serif" || value === "system-sans") return "wechat-default";
+  return fonts.has(value as FontId) ? value as FontId : DEFAULT_SETTINGS.typography.font;
+}
 
 function clampNumber(value: unknown, fallback: number, min: number, max: number): number {
   const number = typeof value === "number" ? value : Number(value);
@@ -74,13 +83,14 @@ export function normalizeSettings(value: unknown): BetterReadSettings {
   return {
     version: SETTINGS_VERSION,
     enabled: typeof input.enabled === "boolean" ? input.enabled : DEFAULT_SETTINGS.enabled,
+    uiTheme: uiThemes.has(input.uiTheme as UiThemeId) ? input.uiTheme as UiThemeId : DEFAULT_SETTINGS.uiTheme,
     theme: themes.has(input.theme as ThemeId) ? input.theme as ThemeId : DEFAULT_SETTINGS.theme,
     customBackground: validColor(input.customBackground, DEFAULT_SETTINGS.customBackground),
     customText: validColor(input.customText, DEFAULT_SETTINGS.customText),
     accent: validColor(input.accent, DEFAULT_SETTINGS.accent),
     typography: {
-      font: fonts.has(typography.font as FontId) ? typography.font as FontId : DEFAULT_SETTINGS.typography.font,
-      fontSize: clampNumber(typography.fontSize, DEFAULT_SETTINGS.typography.fontSize, 14, 30),
+      font: normalizeFont(typography.font),
+      fontSize: Math.round(clampNumber(typography.fontSize, DEFAULT_SETTINGS.typography.fontSize, 16, 28) / 2) * 2,
       lineHeight: clampNumber(typography.lineHeight, DEFAULT_SETTINGS.typography.lineHeight, 1.4, 2.5),
       letterSpacing: clampNumber(typography.letterSpacing, DEFAULT_SETTINGS.typography.letterSpacing, 0, 0.12),
       paragraphSpacing: clampNumber(typography.paragraphSpacing, DEFAULT_SETTINGS.typography.paragraphSpacing, 0.4, 2.4),

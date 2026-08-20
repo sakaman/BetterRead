@@ -1,11 +1,14 @@
-import type { BetterReadSettings, FontId, ThemeId } from "../core/settings.ts";
+import type { BetterReadSettings, ThemeId } from "../core/settings.ts";
 
-const fonts: Record<FontId, string> = {
-  "system-sans": '"PingFang SC", "Microsoft YaHei", ui-sans-serif, system-ui, sans-serif',
-  "system-serif": 'ui-serif, "Songti SC", "Source Han Serif SC", SimSun, serif',
-  "source-serif": '"Source Han Serif CN", "Source Han Serif SC", "Noto Serif CJK SC", ui-serif, serif',
-  lxgw: '"LXGW WenKai", "霞鹜文楷", "KaiTi", cursive',
-};
+const LEGACY_APPEARANCE_PROPERTIES = [
+  "--br-content-width",
+  "--br-font-size",
+  "--br-line-height",
+  "--br-letter-spacing",
+  "--br-paragraph-spacing",
+  "--br-font-family",
+  "--br-text-align",
+];
 
 export class AppearanceController {
   private settings: BetterReadSettings | null = null;
@@ -29,15 +32,8 @@ export class AppearanceController {
     root.dataset.brFocus = String(enabled && settings.focusMode);
     root.dataset.brAutohide = String(enabled && settings.autoHideControls);
     root.dataset.brLineFocus = String(enabled && settings.lineFocus);
+    delete root.dataset.brFont;
     root.style.setProperty("--br-accent", settings.accent);
-    root.style.setProperty("--br-content-width", `${settings.typography.contentWidth}px`);
-    root.style.setProperty("--br-font-size", `${settings.typography.fontSize}px`);
-    root.style.setProperty("--br-line-height", String(settings.typography.lineHeight));
-    root.style.setProperty("--br-letter-spacing", `${settings.typography.letterSpacing}em`);
-    root.style.setProperty("--br-paragraph-spacing", `${settings.typography.paragraphSpacing}em`);
-    root.style.setProperty("--br-font-family", fonts[settings.typography.font]);
-    root.style.setProperty("--br-text-align", settings.typography.textAlign);
-
     if (resolvedTheme === "custom") {
       root.style.setProperty("--br-bg", settings.customBackground);
       root.style.setProperty("--br-surface", `color-mix(in srgb, ${settings.customBackground} 88%, ${settings.customText})`);
@@ -49,6 +45,9 @@ export class AppearanceController {
       for (const property of ["--br-bg", "--br-surface", "--br-text", "--br-muted", "--br-border", "--br-selection"]) {
         root.style.removeProperty(property);
       }
+    }
+    for (const property of LEGACY_APPEARANCE_PROPERTIES) {
+      root.style.removeProperty(property);
     }
   }
 

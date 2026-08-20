@@ -8,6 +8,7 @@
     * { box-sizing: border-box; }
     html { min-height: 100%; background: #f6f7f9; }
     body { min-height: 100%; margin: 0; color: #212832; background: #f6f7f9; font-family: system-ui, sans-serif; }
+    .app_content { min-height: 100vh; background: #fff; }
     .readerTopBar { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; height: 58px; padding: 0 24px; background: rgba(246,247,249,.92); border-bottom: 1px solid rgba(0,0,0,.07); backdrop-filter: blur(12px); }
     .readerTopBar strong { font-family: ui-serif, serif; }
     .readerTopBar span { color: #7b828c; font-size: 13px; }
@@ -21,22 +22,31 @@
     .readerFooter { padding: 24px; color: #838b95; text-align: center; }
   </style>
 </head>
-<body class="wr_page_reader wr_Desktop wr_whiteTheme" data-betterread-preview data-betterread-book="fixture-book">
+<body class="wr_page_reader wr_Desktop wr_whiteTheme wr_reader_font_size_level_2" data-betterread-preview data-betterread-book="fixture-book">
+  <div class="app_content">
   <header class="readerTopBar"><strong>BetterRead 示例书</strong><span>第二章 · 为阅读留出空间</span></header>
-  <aside class="readerControls" aria-label="阅读器控件"><button title="目录">目</button><button title="笔记">记</button><button title="字体">字</button></aside>
-  <main class="readerChapterContent">
+  <aside class="readerControls" aria-label="阅读器控件"><button title="目录">目</button><button title="笔记">记</button><button title="字体">字</button><button class="readerControls_item dark" title="深色">夜</button></aside>
+  <main class="readerChapterContent fontLevel2">
     <h1>为阅读留出空间</h1>
     <p>好的阅读界面并不试图夺走注意力。它只是把文字安静地放在合适的位置，让眼睛拥有稳定的节奏，也让思考能够自然发生。</p>
-    <p>BetterRead 使用局部样式令牌调整背景、正文和排版，不复制书籍内容，也不接管微信读书已有的进度与笔记能力。</p>
+    <p>BetterRead 提供舒适的正文主题，同时保持微信读书原生排版。</p>
     <blockquote>界面越安静，文字就越清楚。</blockquote>
     <h2>一、舒适来自可调节</h2>
-    <p>有人偏爱紧凑的版心，有人需要更大的字号和更宽松的行距。因此，主题和排版不应只有固定预设，也要允许读者按照自己的设备与习惯微调。</p>
-    <p>当前夹具用于验证主题切换、阅读栏宽度、沉浸模式、段落聚焦和本书独立配置等功能。它不包含任何真实书籍或账号数据。</p>
+    <p>字体、字号、行距与版心继续使用微信读书自己的设置，脚本不会覆盖它们。</p>
+    <p>当前夹具用于验证沉浸模式、自动隐藏工具栏、阅读进度、段落聚焦和本书独立配置等功能。它不包含任何真实书籍或账号数据。</p>
     <h2>二、增强不应破坏原网页</h2>
     <p>停用脚本后，所有增强样式都应立即失效；目录、批注、选区和图片仍由原网页负责。这样的边界让脚本更容易维护，也更容易在页面改版后定位兼容问题。</p>
     <p>继续向下滚动可以观察顶部进度条。打开沉浸模式后，章节标题会以轻量提示的方式出现在页面上方。</p>
   </main>
   <footer class="readerFooter">示例阅读页 · 仅用于 BetterRead 本地验证</footer>
+  </div>
+  <script>
+    document.querySelector('.readerControls_item').addEventListener('click', (event) => {
+      document.body.classList.toggle('wr_whiteTheme');
+      event.currentTarget.classList.toggle('dark');
+      event.currentTarget.classList.toggle('white');
+    });
+  </script>
   <script src="/dist/better-read.user.js"></script>
 </body>
 </html>

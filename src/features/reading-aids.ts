@@ -7,6 +7,21 @@ export class ReadingAidsController {
   private chapterChip: HTMLDivElement | null = null;
   private activeLine: Element | null = null;
   private frame = 0;
+  private hideControlsTimer = 0;
+  private lastScrollTop = 0;
+  private scrollDirection = 0;
+  private scrollDistance = 0;
+
+  private readonly onActivity = () => {
+    if (!this.settings?.enabled || !this.settings.autoHideControls) return;
+    document.documentElement.dataset.brControlsHidden = "false";
+    window.clearTimeout(this.hideControlsTimer);
+    this.hideControlsTimer = window.setTimeout(() => {
+      if (this.settings?.enabled && this.settings.autoHideControls) {
+        document.documentElement.dataset.brControlsHidden = "true";
+      }
+    }, 1500);
+  };
 
   private readonly scheduleUpdate = () => {
     if (this.frame) return;
@@ -15,6 +30,34 @@ export class ReadingAidsController {
       this.updateProgress();
       this.updateChapter();
     });
+  };
+
+  private readonly onScroll = () => {
+    this.scheduleUpdate();
+    const current = findReadingScroller().scrollTop;
+    const delta = current - this.lastScrollTop;
+    this.lastScrollTop = current;
+    if (!this.settings?.enabled || !this.settings.focusMode || Math.abs(delta) < 2) return;
+
+    const direction = delta > 0 ? 1 : -1;
+    if (direction !== this.scrollDirection) {
+      this.scrollDirection = direction;
+      this.scrollDistance = 0;
+    }
+    this.scrollDistance += Math.abs(delta);
+    if (direction < 0) {
+      document.documentElement.dataset.brFocusHidden = "false";
+      return;
+    }
+    if (this.scrollDistance < 18) return;
+    document.documentElement.dataset.brFocusHidden = String(current > 24);
+  };
+
+  private readonly onWheel = (event: WheelEvent) => {
+    if (!this.settings?.enabled || !this.settings.focusMode || event.deltaY >= -2) return;
+    this.scrollDirection = -1;
+    this.scrollDistance = 0;
+    document.documentElement.dataset.brFocusHidden = "false";
   };
 
   private readonly onPointerOver = (event: PointerEvent) => {
@@ -40,18 +83,38 @@ export class ReadingAidsController {
       this.chapterChip.setAttribute("aria-hidden", "true");
       document.body.append(this.chapterChip);
     }
-    window.addEventListener("scroll", this.scheduleUpdate, { passive: true });
+    this.lastScrollTop = findReadingScroller().scrollTop;
+    window.addEventListener("scroll", this.onScroll, { passive: true });
+    document.addEventListener("scroll", this.onScroll, { capture: true, passive: true });
+    document.addEventListener("wheel", this.onWheel, { passive: true });
     window.addEventListener("resize", this.scheduleUpdate, { passive: true });
+    document.addEventListener("pointermove", this.onActivity, { passive: true });
+    document.addEventListener("pointerdown", this.onActivity, { passive: true });
+    document.addEventListener("keydown", this.onActivity);
+    document.addEventListener("focusin", this.onActivity);
     document.addEventListener("pointerover", this.onPointerOver, { passive: true });
     this.scheduleUpdate();
   }
 
   apply(settings: BetterReadSettings): void {
+    const focusWasActive = Boolean(this.settings?.enabled && this.settings.focusMode);
+    const focusIsActive = settings.enabled && settings.focusMode;
     this.settings = settings;
+    if (focusWasActive !== focusIsActive) {
+      this.lastScrollTop = findReadingScroller().scrollTop;
+      this.scrollDirection = 0;
+      this.scrollDistance = 0;
+      document.documentElement.dataset.brFocusHidden = "false";
+    }
     if (this.progress) this.progress.hidden = !settings.enabled || !settings.showProgress;
     if (!settings.enabled || !settings.lineFocus) {
       this.activeLine?.classList.remove("betterread-active-line");
       this.activeLine = null;
+    }
+    if (settings.enabled && settings.autoHideControls) this.onActivity();
+    else {
+      window.clearTimeout(this.hideControlsTimer);
+      document.documentElement.dataset.brControlsHidden = "false";
     }
     this.scheduleUpdate();
   }
@@ -79,9 +142,16 @@ export class ReadingAidsController {
   }
 
   destroy(): void {
-    window.removeEventListener("scroll", this.scheduleUpdate);
+    window.removeEventListener("scroll", this.onScroll);
+    document.removeEventListener("scroll", this.onScroll, { capture: true });
+    document.removeEventListener("wheel", this.onWheel);
     window.removeEventListener("resize", this.scheduleUpdate);
+    document.removeEventListener("pointermove", this.onActivity);
+    document.removeEventListener("pointerdown", this.onActivity);
+    document.removeEventListener("keydown", this.onActivity);
+    document.removeEventListener("focusin", this.onActivity);
     document.removeEventListener("pointerover", this.onPointerOver);
+    window.clearTimeout(this.hideControlsTimer);
     if (this.frame) cancelAnimationFrame(this.frame);
     this.activeLine?.classList.remove("betterread-active-line");
     this.progress?.remove();

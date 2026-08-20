@@ -7,14 +7,6 @@ html[data-br-enabled="true"] {
   --br-border: rgba(38, 43, 49, 0.12);
   --br-accent: #2f7d68;
   --br-selection: rgba(47, 125, 104, 0.22);
-  --br-content-width: 760px;
-  --br-font-size: 19px;
-  --br-line-height: 1.9;
-  --br-letter-spacing: 0.02em;
-  --br-paragraph-spacing: 1.1em;
-  --br-font-family: ui-serif, "Songti SC", "Source Han Serif SC", SimSun, serif;
-  --br-text-align: justify;
-  color-scheme: light;
 }
 
 html[data-br-theme="sepia"] {
@@ -26,6 +18,24 @@ html[data-br-theme="sepia"] {
   --br-selection: rgba(161, 105, 52, 0.24);
 }
 
+html[data-br-theme="parchment"] {
+  --br-bg: #d8c49f;
+  --br-surface: #e7d5b1;
+  --br-text: #4a3826;
+  --br-muted: #806b50;
+  --br-border: rgba(74, 56, 38, 0.18);
+  --br-selection: rgba(139, 91, 48, 0.28);
+}
+
+html[data-br-theme="bean"] {
+  --br-bg: #e7d8d4;
+  --br-surface: #f0e4e0;
+  --br-text: #493839;
+  --br-muted: #796668;
+  --br-border: rgba(73, 56, 57, 0.15);
+  --br-selection: rgba(143, 90, 94, 0.24);
+}
+
 html[data-br-theme="forest"] {
   --br-bg: #e4eadf;
   --br-surface: #eef2ea;
@@ -35,6 +45,15 @@ html[data-br-theme="forest"] {
   --br-selection: rgba(64, 119, 88, 0.23);
 }
 
+html[data-br-theme="midnight"] {
+  --br-bg: #182431;
+  --br-surface: #223140;
+  --br-text: #d6e1ea;
+  --br-muted: #94a8b8;
+  --br-border: rgba(214, 225, 234, 0.13);
+  --br-selection: rgba(94, 159, 196, 0.32);
+}
+
 html[data-br-theme="dark"] {
   --br-bg: #171a1f;
   --br-surface: #20242b;
@@ -42,7 +61,6 @@ html[data-br-theme="dark"] {
   --br-muted: #929aa5;
   --br-border: rgba(232, 236, 241, 0.12);
   --br-selection: rgba(78, 184, 151, 0.3);
-  color-scheme: dark;
 }
 
 html[data-br-theme="oled"] {
@@ -52,64 +70,48 @@ html[data-br-theme="oled"] {
   --br-muted: #878c94;
   --br-border: rgba(255, 255, 255, 0.14);
   --br-selection: rgba(77, 196, 159, 0.32);
-  color-scheme: dark;
 }
 
 html[data-br-enabled="true"] body.wr_page_reader,
 html[data-br-enabled="true"] body[data-betterread-preview] {
-  background: var(--br-bg) !important;
   color: var(--br-text) !important;
+  background-color: var(--br-bg) !important;
   transition: background-color 180ms ease, color 180ms ease;
 }
 
-html[data-br-enabled="true"] body.wr_page_reader :where(.readerTopBar, .readerFooter, .readerControls, [class*="readerTopBar"], [class*="readerFooter"]),
-html[data-br-enabled="true"] body[data-betterread-preview] :where(.readerTopBar, .readerFooter, .readerControls) {
-  color: var(--br-muted) !important;
+html[data-br-enabled="true"] body.wr_page_reader :where(.app, .routerView, .readerContent, .app_content),
+html[data-br-enabled="true"] body[data-betterread-preview] :where(.app, .routerView, .readerContent, .app_content) {
+  background-color: var(--br-bg) !important;
 }
 
 html[data-br-enabled="true"] body.wr_page_reader :where(.readerChapterContent, [class*="readerChapterContent"], [class*="chapterContent"]),
 html[data-br-enabled="true"] body[data-betterread-preview] .readerChapterContent {
-  box-sizing: border-box;
-  width: min(calc(100vw - 48px), var(--br-content-width)) !important;
-  max-width: var(--br-content-width) !important;
-  margin-inline: auto !important;
   color: var(--br-text) !important;
-  font-family: var(--br-font-family) !important;
-  font-size: var(--br-font-size) !important;
-  line-height: var(--br-line-height) !important;
-  letter-spacing: var(--br-letter-spacing) !important;
-  text-align: var(--br-text-align) !important;
 }
 
-html[data-br-enabled="true"] body.wr_page_reader :where(.readerChapterContent, [class*="readerChapterContent"], [class*="chapterContent"]) :where(p, li, blockquote),
-html[data-br-enabled="true"] body[data-betterread-preview] .readerChapterContent :where(p, li, blockquote) {
-  color: var(--br-text) !important;
-  font-family: inherit !important;
-  font-size: inherit !important;
-  line-height: inherit !important;
-  letter-spacing: inherit !important;
-  text-align: inherit !important;
+html[data-br-enabled="true"] body.wr_page_reader :where(.readerChapterContent, [class*="readerChapterContent"], [class*="chapterContent"]) :where(p, li, h1, h2, h3, h4, blockquote),
+html[data-br-enabled="true"] body[data-betterread-preview] .readerChapterContent :where(p, li, h1, h2, h3, h4, blockquote) {
+  color: inherit !important;
 }
 
-html[data-br-enabled="true"] body.wr_page_reader :where(.readerChapterContent, [class*="readerChapterContent"], [class*="chapterContent"]) p,
-html[data-br-enabled="true"] body[data-betterread-preview] .readerChapterContent p {
-  margin-block: 0 var(--br-paragraph-spacing) !important;
+html[data-br-enabled="true"] body.wr_page_reader :where(.readerTopBar, .readerFooter, [class*="readerTopBar"], [class*="readerFooter"]),
+html[data-br-enabled="true"] body[data-betterread-preview] :where(.readerTopBar, .readerFooter) {
+  color: var(--br-muted) !important;
+  background-color: color-mix(in srgb, var(--br-surface) 94%, transparent) !important;
+  border-color: var(--br-border) !important;
 }
 
-html[data-br-enabled="true"] body.wr_page_reader :where(.readerChapterContent, [class*="readerChapterContent"], [class*="chapterContent"]) :where(h1, h2, h3, h4),
-html[data-br-enabled="true"] body[data-betterread-preview] .readerChapterContent :where(h1, h2, h3, h4) {
-  color: var(--br-text) !important;
-  font-family: var(--br-font-family) !important;
-  letter-spacing: 0 !important;
-  text-wrap: balance;
+html[data-br-enabled="true"] body.wr_page_reader .readerControls button,
+html[data-br-enabled="true"] body[data-betterread-preview] .readerControls button {
+  color: var(--br-muted) !important;
+  background-color: var(--br-surface) !important;
+  border-color: var(--br-border) !important;
 }
 
 html[data-br-enabled="true"] body.wr_page_reader :where(.readerChapterContent, [class*="readerChapterContent"], [class*="chapterContent"]) blockquote,
 html[data-br-enabled="true"] body[data-betterread-preview] .readerChapterContent blockquote {
-  margin-inline: 0 !important;
-  padding: 0.35em 1em !important;
-  border-inline-start: 3px solid var(--br-accent) !important;
-  background: color-mix(in srgb, var(--br-surface) 82%, transparent) !important;
+  border-inline-start-color: var(--br-accent) !important;
+  background-color: color-mix(in srgb, var(--br-surface) 82%, transparent) !important;
   color: var(--br-muted) !important;
 }
 
@@ -118,29 +120,28 @@ html[data-br-enabled="true"] body[data-betterread-preview] ::selection {
   background: var(--br-selection) !important;
 }
 
-html[data-br-enabled="true"] body.wr_page_reader img,
-html[data-br-enabled="true"] body[data-betterread-preview] img {
-  max-width: 100%;
-}
-
+html[data-br-enabled="true"][data-br-theme="midnight"] body.wr_page_reader img,
 html[data-br-enabled="true"][data-br-theme="dark"] body.wr_page_reader img,
 html[data-br-enabled="true"][data-br-theme="oled"] body.wr_page_reader img,
+html[data-br-enabled="true"][data-br-theme="midnight"] body[data-betterread-preview] img,
 html[data-br-enabled="true"][data-br-theme="dark"] body[data-betterread-preview] img,
 html[data-br-enabled="true"][data-br-theme="oled"] body[data-betterread-preview] img {
   filter: brightness(0.9) contrast(0.96);
 }
 
-html[data-br-enabled="true"][data-br-autohide="true"] body.wr_page_reader :where(.readerTopBar, .readerFooter, .readerControls, [class*="readerTopBar"], [class*="readerFooter"], [class*="readerControls"]),
-html[data-br-enabled="true"][data-br-autohide="true"] body[data-betterread-preview] :where(.readerTopBar, .readerFooter, .readerControls),
-html[data-br-enabled="true"][data-br-focus="true"] body.wr_page_reader :where(.readerTopBar, .readerFooter, .readerControls, [class*="readerTopBar"], [class*="readerFooter"], [class*="readerControls"]),
-html[data-br-enabled="true"][data-br-focus="true"] body[data-betterread-preview] :where(.readerTopBar, .readerFooter, .readerControls) {
-  opacity: 0.08 !important;
+html[data-br-enabled="true"][data-br-focus="true"][data-br-focus-hidden="true"] body.wr_page_reader :where(.readerTopBar, .readerHeaderButton, .readerFooter, [class*="readerTopBar"], [class*="readerFooter"]),
+html[data-br-enabled="true"][data-br-focus="true"][data-br-focus-hidden="true"] body[data-betterread-preview] :where(.readerTopBar, .readerFooter) {
+  opacity: 0 !important;
+  pointer-events: none !important;
   transition: opacity 180ms ease !important;
 }
 
-html[data-br-enabled="true"][data-br-autohide="true"] body.wr_page_reader :where(.readerTopBar, .readerFooter, .readerControls, [class*="readerTopBar"], [class*="readerFooter"], [class*="readerControls"]):hover,
-html[data-br-enabled="true"][data-br-autohide="true"] body[data-betterread-preview] :where(.readerTopBar, .readerFooter, .readerControls):hover {
-  opacity: 1 !important;
+html[data-br-enabled="true"][data-br-autohide="true"][data-br-controls-hidden="true"] body.wr_page_reader .readerControls,
+html[data-br-enabled="true"][data-br-autohide="true"][data-br-controls-hidden="true"] body[data-betterread-preview] .readerControls {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translate(18px, -50%) !important;
+  transition: opacity 180ms ease, transform 180ms ease !important;
 }
 
 html[data-br-enabled="true"][data-br-line-focus="true"] body.wr_page_reader :where(.readerChapterContent, [class*="readerChapterContent"], [class*="chapterContent"]) :where(p, h1, h2, h3, h4, li, blockquote),
@@ -203,10 +204,6 @@ html[data-br-enabled="true"][data-br-focus="true"] #betterread-chapter-chip {
 }
 
 @media (max-width: 720px) {
-  html[data-br-enabled="true"] body.wr_page_reader :where(.readerChapterContent, [class*="readerChapterContent"], [class*="chapterContent"]),
-  html[data-br-enabled="true"] body[data-betterread-preview] .readerChapterContent {
-    width: calc(100vw - 32px) !important;
-  }
   #betterread-chapter-chip { max-width: calc(100vw - 104px); }
 }
 

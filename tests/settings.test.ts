@@ -25,9 +25,21 @@ describe("normalizeSettings", () => {
     assert.equal(settings.theme, "dark");
     assert.equal(settings.accent, "#123abc");
     assert.equal(settings.typography.font, "lxgw");
-    assert.equal(settings.typography.fontSize, 30);
+    assert.equal(settings.typography.fontSize, 28);
     assert.equal(settings.typography.lineHeight, 1.4);
     assert.equal(settings.typography.contentWidth, 900);
+  });
+
+  it("migrates legacy system fonts to the WeRead default", () => {
+    const settings = normalizeSettings({
+      version: 1,
+      uiTheme: "dark",
+      typography: { font: "system-serif", fontSize: 19 },
+    });
+
+    assert.equal(settings.uiTheme, "dark");
+    assert.equal(settings.typography.font, "wechat-default");
+    assert.equal(settings.typography.fontSize, 20);
   });
 
   it("rejects malformed theme and color values", () => {
