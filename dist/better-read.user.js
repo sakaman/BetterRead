@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         BetterRead - 微信读书体验增强
 // @namespace    https://betterread.local/
-// @version      0.1.0
-// @description  为微信读书网页版提供主题、排版、沉浸阅读和进度增强。
+// @version      0.1.4
+// @description  提供正文主题、沉浸阅读和进度增强，并保留微信读书原生排版。
 // @author       BetterRead
 // @homepageURL  https://github.com/sakaman/BetterRead
 // @supportURL   https://github.com/sakaman/BetterRead/issues
@@ -53,17 +53,18 @@
   }
 
   // src/core/settings.ts
-  var SETTINGS_VERSION = 1;
+  var SETTINGS_VERSION = 2;
   var DEFAULT_SETTINGS = {
     version: SETTINGS_VERSION,
     enabled: true,
+    uiTheme: "system",
     theme: "paper",
     customBackground: "#f5f1e8",
     customText: "#2f2a24",
     accent: "#2f7d68",
     typography: {
-      font: "system-serif",
-      fontSize: 19,
+      font: "wechat-default",
+      fontSize: 18,
       lineHeight: 1.9,
       letterSpacing: 0.02,
       paragraphSpacing: 1.1,
@@ -76,9 +77,14 @@
     lineFocus: false,
     shortcuts: true
   };
-  var themes = /* @__PURE__ */ new Set(["paper", "sepia", "forest", "dark", "oled", "system", "custom"]);
-  var fonts = /* @__PURE__ */ new Set(["system-sans", "system-serif", "source-serif", "lxgw"]);
+  var themes = /* @__PURE__ */ new Set(["paper", "sepia", "parchment", "bean", "forest", "midnight", "dark", "oled", "system", "custom"]);
+  var uiThemes = /* @__PURE__ */ new Set(["light", "dark", "system"]);
+  var fonts = /* @__PURE__ */ new Set(["wechat-default", "source-serif", "source-sans", "lxgw"]);
   var alignments = /* @__PURE__ */ new Set(["left", "justify"]);
+  function normalizeFont(value) {
+    if (value === "system-serif" || value === "system-sans") return "wechat-default";
+    return fonts.has(value) ? value : DEFAULT_SETTINGS.typography.font;
+  }
   function clampNumber(value, fallback, min, max) {
     const number = typeof value === "number" ? value : Number(value);
     return Number.isFinite(number) ? Math.min(max, Math.max(min, number)) : fallback;
@@ -92,13 +98,14 @@
     return {
       version: SETTINGS_VERSION,
       enabled: typeof input.enabled === "boolean" ? input.enabled : DEFAULT_SETTINGS.enabled,
+      uiTheme: uiThemes.has(input.uiTheme) ? input.uiTheme : DEFAULT_SETTINGS.uiTheme,
       theme: themes.has(input.theme) ? input.theme : DEFAULT_SETTINGS.theme,
       customBackground: validColor(input.customBackground, DEFAULT_SETTINGS.customBackground),
       customText: validColor(input.customText, DEFAULT_SETTINGS.customText),
       accent: validColor(input.accent, DEFAULT_SETTINGS.accent),
       typography: {
-        font: fonts.has(typography.font) ? typography.font : DEFAULT_SETTINGS.typography.font,
-        fontSize: clampNumber(typography.fontSize, DEFAULT_SETTINGS.typography.fontSize, 14, 30),
+        font: normalizeFont(typography.font),
+        fontSize: Math.round(clampNumber(typography.fontSize, DEFAULT_SETTINGS.typography.fontSize, 16, 28) / 2) * 2,
         lineHeight: clampNumber(typography.lineHeight, DEFAULT_SETTINGS.typography.lineHeight, 1.4, 2.5),
         letterSpacing: clampNumber(typography.letterSpacing, DEFAULT_SETTINGS.typography.letterSpacing, 0, 0.12),
         paragraphSpacing: clampNumber(typography.paragraphSpacing, DEFAULT_SETTINGS.typography.paragraphSpacing, 0.4, 2.4),
@@ -172,12 +179,15 @@
   }
 
   // src/features/appearance.ts
-  var fonts2 = {
-    "system-sans": '"PingFang SC", "Microsoft YaHei", ui-sans-serif, system-ui, sans-serif',
-    "system-serif": 'ui-serif, "Songti SC", "Source Han Serif SC", SimSun, serif',
-    "source-serif": '"Source Han Serif CN", "Source Han Serif SC", "Noto Serif CJK SC", ui-serif, serif',
-    lxgw: '"LXGW WenKai", "霞鹜文楷", "KaiTi", cursive'
-  };
+  var LEGACY_APPEARANCE_PROPERTIES = [
+    "--br-content-width",
+    "--br-font-size",
+    "--br-line-height",
+    "--br-letter-spacing",
+    "--br-paragraph-spacing",
+    "--br-font-family",
+    "--br-text-align"
+  ];
   var AppearanceController = class {
     settings = null;
     media = matchMedia("(prefers-color-scheme: dark)");
@@ -195,14 +205,8 @@
       root.dataset.brFocus = String(enabled && settings2.focusMode);
       root.dataset.brAutohide = String(enabled && settings2.autoHideControls);
       root.dataset.brLineFocus = String(enabled && settings2.lineFocus);
+      delete root.dataset.brFont;
       root.style.setProperty("--br-accent", settings2.accent);
-      root.style.setProperty("--br-content-width", `${settings2.typography.contentWidth}px`);
-      root.style.setProperty("--br-font-size", `${settings2.typography.fontSize}px`);
-      root.style.setProperty("--br-line-height", String(settings2.typography.lineHeight));
-      root.style.setProperty("--br-letter-spacing", `${settings2.typography.letterSpacing}em`);
-      root.style.setProperty("--br-paragraph-spacing", `${settings2.typography.paragraphSpacing}em`);
-      root.style.setProperty("--br-font-family", fonts2[settings2.typography.font]);
-      root.style.setProperty("--br-text-align", settings2.typography.textAlign);
       if (resolvedTheme === "custom") {
         root.style.setProperty("--br-bg", settings2.customBackground);
         root.style.setProperty("--br-surface", `color-mix(in srgb, ${settings2.customBackground} 88%, ${settings2.customText})`);
@@ -214,6 +218,9 @@
         for (const property of ["--br-bg", "--br-surface", "--br-text", "--br-muted", "--br-border", "--br-selection"]) {
           root.style.removeProperty(property);
         }
+      }
+      for (const property of LEGACY_APPEARANCE_PROPERTIES) {
+        root.style.removeProperty(property);
       }
     }
     destroy() {
@@ -258,6 +265,20 @@
     chapterChip = null;
     activeLine = null;
     frame = 0;
+    hideControlsTimer = 0;
+    lastScrollTop = 0;
+    scrollDirection = 0;
+    scrollDistance = 0;
+    onActivity = () => {
+      if (!this.settings?.enabled || !this.settings.autoHideControls) return;
+      document.documentElement.dataset.brControlsHidden = "false";
+      window.clearTimeout(this.hideControlsTimer);
+      this.hideControlsTimer = window.setTimeout(() => {
+        if (this.settings?.enabled && this.settings.autoHideControls) {
+          document.documentElement.dataset.brControlsHidden = "true";
+        }
+      }, 1500);
+    };
     scheduleUpdate = () => {
       if (this.frame) return;
       this.frame = requestAnimationFrame(() => {
@@ -265,6 +286,31 @@
         this.updateProgress();
         this.updateChapter();
       });
+    };
+    onScroll = () => {
+      this.scheduleUpdate();
+      const current = findReadingScroller().scrollTop;
+      const delta = current - this.lastScrollTop;
+      this.lastScrollTop = current;
+      if (!this.settings?.enabled || !this.settings.focusMode || Math.abs(delta) < 2) return;
+      const direction = delta > 0 ? 1 : -1;
+      if (direction !== this.scrollDirection) {
+        this.scrollDirection = direction;
+        this.scrollDistance = 0;
+      }
+      this.scrollDistance += Math.abs(delta);
+      if (direction < 0) {
+        document.documentElement.dataset.brFocusHidden = "false";
+        return;
+      }
+      if (this.scrollDistance < 18) return;
+      document.documentElement.dataset.brFocusHidden = String(current > 24);
+    };
+    onWheel = (event) => {
+      if (!this.settings?.enabled || !this.settings.focusMode || event.deltaY >= -2) return;
+      this.scrollDirection = -1;
+      this.scrollDistance = 0;
+      document.documentElement.dataset.brFocusHidden = "false";
     };
     onPointerOver = (event) => {
       if (!this.settings?.enabled || !this.settings.lineFocus) return;
@@ -288,17 +334,37 @@
         this.chapterChip.setAttribute("aria-hidden", "true");
         document.body.append(this.chapterChip);
       }
-      window.addEventListener("scroll", this.scheduleUpdate, { passive: true });
+      this.lastScrollTop = findReadingScroller().scrollTop;
+      window.addEventListener("scroll", this.onScroll, { passive: true });
+      document.addEventListener("scroll", this.onScroll, { capture: true, passive: true });
+      document.addEventListener("wheel", this.onWheel, { passive: true });
       window.addEventListener("resize", this.scheduleUpdate, { passive: true });
+      document.addEventListener("pointermove", this.onActivity, { passive: true });
+      document.addEventListener("pointerdown", this.onActivity, { passive: true });
+      document.addEventListener("keydown", this.onActivity);
+      document.addEventListener("focusin", this.onActivity);
       document.addEventListener("pointerover", this.onPointerOver, { passive: true });
       this.scheduleUpdate();
     }
     apply(settings2) {
+      const focusWasActive = Boolean(this.settings?.enabled && this.settings.focusMode);
+      const focusIsActive = settings2.enabled && settings2.focusMode;
       this.settings = settings2;
+      if (focusWasActive !== focusIsActive) {
+        this.lastScrollTop = findReadingScroller().scrollTop;
+        this.scrollDirection = 0;
+        this.scrollDistance = 0;
+        document.documentElement.dataset.brFocusHidden = "false";
+      }
       if (this.progress) this.progress.hidden = !settings2.enabled || !settings2.showProgress;
       if (!settings2.enabled || !settings2.lineFocus) {
         this.activeLine?.classList.remove("betterread-active-line");
         this.activeLine = null;
+      }
+      if (settings2.enabled && settings2.autoHideControls) this.onActivity();
+      else {
+        window.clearTimeout(this.hideControlsTimer);
+        document.documentElement.dataset.brControlsHidden = "false";
       }
       this.scheduleUpdate();
     }
@@ -322,13 +388,73 @@
       this.chapterChip.textContent = current?.textContent?.trim() || "";
     }
     destroy() {
-      window.removeEventListener("scroll", this.scheduleUpdate);
+      window.removeEventListener("scroll", this.onScroll);
+      document.removeEventListener("scroll", this.onScroll, { capture: true });
+      document.removeEventListener("wheel", this.onWheel);
       window.removeEventListener("resize", this.scheduleUpdate);
+      document.removeEventListener("pointermove", this.onActivity);
+      document.removeEventListener("pointerdown", this.onActivity);
+      document.removeEventListener("keydown", this.onActivity);
+      document.removeEventListener("focusin", this.onActivity);
       document.removeEventListener("pointerover", this.onPointerOver);
+      window.clearTimeout(this.hideControlsTimer);
       if (this.frame) cancelAnimationFrame(this.frame);
       this.activeLine?.classList.remove("betterread-active-line");
       this.progress?.remove();
       this.chapterChip?.remove();
+    }
+  };
+
+  // src/platform/native-reader.ts
+  function isDarkColor(color) {
+    const value = color.replace("#", "");
+    const red = Number.parseInt(value.slice(0, 2), 16);
+    const green = Number.parseInt(value.slice(2, 4), 16);
+    const blue = Number.parseInt(value.slice(4, 6), 16);
+    return (red * 299 + green * 587 + blue * 114) / 1e3 < 128;
+  }
+  function shouldUseNativeDark(settings2, prefersDark) {
+    if (settings2.theme === "system") return prefersDark;
+    if (settings2.theme === "custom") return isDarkColor(settings2.customBackground);
+    return settings2.theme === "midnight" || settings2.theme === "dark" || settings2.theme === "oled";
+  }
+  var NativeReaderThemeController = class {
+    settings = null;
+    attempts = 0;
+    retryTimer = 0;
+    originalNativeDark = null;
+    media = matchMedia("(prefers-color-scheme: dark)");
+    onSchemeChange = () => this.settings && this.apply(this.settings);
+    constructor() {
+      this.media.addEventListener("change", this.onSchemeChange);
+    }
+    apply(settings2) {
+      this.settings = settings2;
+      this.attempts = 0;
+      window.clearTimeout(this.retryTimer);
+      this.syncOrRetry();
+    }
+    syncOrRetry() {
+      if (!this.settings || this.sync()) return;
+      if (this.attempts++ >= 12) return;
+      this.retryTimer = window.setTimeout(() => this.syncOrRetry(), 250);
+    }
+    sync() {
+      if (!this.settings || !document.body) return false;
+      const nativeDark = !document.body.classList.contains("wr_whiteTheme");
+      this.originalNativeDark ??= nativeDark;
+      const desiredDark = this.settings.enabled ? shouldUseNativeDark(this.settings, this.media.matches) : this.originalNativeDark;
+      if (desiredDark === nativeDark) return true;
+      const themeButton = document.querySelector(
+        "button.readerControls_item.dark, button.readerControls_item.white"
+      );
+      if (!themeButton) return false;
+      themeButton.click();
+      return true;
+    }
+    destroy() {
+      window.clearTimeout(this.retryTimer);
+      this.media.removeEventListener("change", this.onSchemeChange);
     }
   };
 
@@ -342,14 +468,6 @@ html[data-br-enabled="true"] {
   --br-border: rgba(38, 43, 49, 0.12);
   --br-accent: #2f7d68;
   --br-selection: rgba(47, 125, 104, 0.22);
-  --br-content-width: 760px;
-  --br-font-size: 19px;
-  --br-line-height: 1.9;
-  --br-letter-spacing: 0.02em;
-  --br-paragraph-spacing: 1.1em;
-  --br-font-family: ui-serif, "Songti SC", "Source Han Serif SC", SimSun, serif;
-  --br-text-align: justify;
-  color-scheme: light;
 }
 
 html[data-br-theme="sepia"] {
@@ -361,6 +479,24 @@ html[data-br-theme="sepia"] {
   --br-selection: rgba(161, 105, 52, 0.24);
 }
 
+html[data-br-theme="parchment"] {
+  --br-bg: #d8c49f;
+  --br-surface: #e7d5b1;
+  --br-text: #4a3826;
+  --br-muted: #806b50;
+  --br-border: rgba(74, 56, 38, 0.18);
+  --br-selection: rgba(139, 91, 48, 0.28);
+}
+
+html[data-br-theme="bean"] {
+  --br-bg: #e7d8d4;
+  --br-surface: #f0e4e0;
+  --br-text: #493839;
+  --br-muted: #796668;
+  --br-border: rgba(73, 56, 57, 0.15);
+  --br-selection: rgba(143, 90, 94, 0.24);
+}
+
 html[data-br-theme="forest"] {
   --br-bg: #e4eadf;
   --br-surface: #eef2ea;
@@ -370,6 +506,15 @@ html[data-br-theme="forest"] {
   --br-selection: rgba(64, 119, 88, 0.23);
 }
 
+html[data-br-theme="midnight"] {
+  --br-bg: #182431;
+  --br-surface: #223140;
+  --br-text: #d6e1ea;
+  --br-muted: #94a8b8;
+  --br-border: rgba(214, 225, 234, 0.13);
+  --br-selection: rgba(94, 159, 196, 0.32);
+}
+
 html[data-br-theme="dark"] {
   --br-bg: #171a1f;
   --br-surface: #20242b;
@@ -377,7 +522,6 @@ html[data-br-theme="dark"] {
   --br-muted: #929aa5;
   --br-border: rgba(232, 236, 241, 0.12);
   --br-selection: rgba(78, 184, 151, 0.3);
-  color-scheme: dark;
 }
 
 html[data-br-theme="oled"] {
@@ -387,64 +531,48 @@ html[data-br-theme="oled"] {
   --br-muted: #878c94;
   --br-border: rgba(255, 255, 255, 0.14);
   --br-selection: rgba(77, 196, 159, 0.32);
-  color-scheme: dark;
 }
 
 html[data-br-enabled="true"] body.wr_page_reader,
 html[data-br-enabled="true"] body[data-betterread-preview] {
-  background: var(--br-bg) !important;
   color: var(--br-text) !important;
+  background-color: var(--br-bg) !important;
   transition: background-color 180ms ease, color 180ms ease;
 }
 
-html[data-br-enabled="true"] body.wr_page_reader :where(.readerTopBar, .readerFooter, .readerControls, [class*="readerTopBar"], [class*="readerFooter"]),
-html[data-br-enabled="true"] body[data-betterread-preview] :where(.readerTopBar, .readerFooter, .readerControls) {
-  color: var(--br-muted) !important;
+html[data-br-enabled="true"] body.wr_page_reader :where(.app, .routerView, .readerContent, .app_content),
+html[data-br-enabled="true"] body[data-betterread-preview] :where(.app, .routerView, .readerContent, .app_content) {
+  background-color: var(--br-bg) !important;
 }
 
 html[data-br-enabled="true"] body.wr_page_reader :where(.readerChapterContent, [class*="readerChapterContent"], [class*="chapterContent"]),
 html[data-br-enabled="true"] body[data-betterread-preview] .readerChapterContent {
-  box-sizing: border-box;
-  width: min(calc(100vw - 48px), var(--br-content-width)) !important;
-  max-width: var(--br-content-width) !important;
-  margin-inline: auto !important;
   color: var(--br-text) !important;
-  font-family: var(--br-font-family) !important;
-  font-size: var(--br-font-size) !important;
-  line-height: var(--br-line-height) !important;
-  letter-spacing: var(--br-letter-spacing) !important;
-  text-align: var(--br-text-align) !important;
 }
 
-html[data-br-enabled="true"] body.wr_page_reader :where(.readerChapterContent, [class*="readerChapterContent"], [class*="chapterContent"]) :where(p, li, blockquote),
-html[data-br-enabled="true"] body[data-betterread-preview] .readerChapterContent :where(p, li, blockquote) {
-  color: var(--br-text) !important;
-  font-family: inherit !important;
-  font-size: inherit !important;
-  line-height: inherit !important;
-  letter-spacing: inherit !important;
-  text-align: inherit !important;
+html[data-br-enabled="true"] body.wr_page_reader :where(.readerChapterContent, [class*="readerChapterContent"], [class*="chapterContent"]) :where(p, li, h1, h2, h3, h4, blockquote),
+html[data-br-enabled="true"] body[data-betterread-preview] .readerChapterContent :where(p, li, h1, h2, h3, h4, blockquote) {
+  color: inherit !important;
 }
 
-html[data-br-enabled="true"] body.wr_page_reader :where(.readerChapterContent, [class*="readerChapterContent"], [class*="chapterContent"]) p,
-html[data-br-enabled="true"] body[data-betterread-preview] .readerChapterContent p {
-  margin-block: 0 var(--br-paragraph-spacing) !important;
+html[data-br-enabled="true"] body.wr_page_reader :where(.readerTopBar, .readerFooter, [class*="readerTopBar"], [class*="readerFooter"]),
+html[data-br-enabled="true"] body[data-betterread-preview] :where(.readerTopBar, .readerFooter) {
+  color: var(--br-muted) !important;
+  background-color: color-mix(in srgb, var(--br-surface) 94%, transparent) !important;
+  border-color: var(--br-border) !important;
 }
 
-html[data-br-enabled="true"] body.wr_page_reader :where(.readerChapterContent, [class*="readerChapterContent"], [class*="chapterContent"]) :where(h1, h2, h3, h4),
-html[data-br-enabled="true"] body[data-betterread-preview] .readerChapterContent :where(h1, h2, h3, h4) {
-  color: var(--br-text) !important;
-  font-family: var(--br-font-family) !important;
-  letter-spacing: 0 !important;
-  text-wrap: balance;
+html[data-br-enabled="true"] body.wr_page_reader .readerControls button,
+html[data-br-enabled="true"] body[data-betterread-preview] .readerControls button {
+  color: var(--br-muted) !important;
+  background-color: var(--br-surface) !important;
+  border-color: var(--br-border) !important;
 }
 
 html[data-br-enabled="true"] body.wr_page_reader :where(.readerChapterContent, [class*="readerChapterContent"], [class*="chapterContent"]) blockquote,
 html[data-br-enabled="true"] body[data-betterread-preview] .readerChapterContent blockquote {
-  margin-inline: 0 !important;
-  padding: 0.35em 1em !important;
-  border-inline-start: 3px solid var(--br-accent) !important;
-  background: color-mix(in srgb, var(--br-surface) 82%, transparent) !important;
+  border-inline-start-color: var(--br-accent) !important;
+  background-color: color-mix(in srgb, var(--br-surface) 82%, transparent) !important;
   color: var(--br-muted) !important;
 }
 
@@ -453,29 +581,28 @@ html[data-br-enabled="true"] body[data-betterread-preview] ::selection {
   background: var(--br-selection) !important;
 }
 
-html[data-br-enabled="true"] body.wr_page_reader img,
-html[data-br-enabled="true"] body[data-betterread-preview] img {
-  max-width: 100%;
-}
-
+html[data-br-enabled="true"][data-br-theme="midnight"] body.wr_page_reader img,
 html[data-br-enabled="true"][data-br-theme="dark"] body.wr_page_reader img,
 html[data-br-enabled="true"][data-br-theme="oled"] body.wr_page_reader img,
+html[data-br-enabled="true"][data-br-theme="midnight"] body[data-betterread-preview] img,
 html[data-br-enabled="true"][data-br-theme="dark"] body[data-betterread-preview] img,
 html[data-br-enabled="true"][data-br-theme="oled"] body[data-betterread-preview] img {
   filter: brightness(0.9) contrast(0.96);
 }
 
-html[data-br-enabled="true"][data-br-autohide="true"] body.wr_page_reader :where(.readerTopBar, .readerFooter, .readerControls, [class*="readerTopBar"], [class*="readerFooter"], [class*="readerControls"]),
-html[data-br-enabled="true"][data-br-autohide="true"] body[data-betterread-preview] :where(.readerTopBar, .readerFooter, .readerControls),
-html[data-br-enabled="true"][data-br-focus="true"] body.wr_page_reader :where(.readerTopBar, .readerFooter, .readerControls, [class*="readerTopBar"], [class*="readerFooter"], [class*="readerControls"]),
-html[data-br-enabled="true"][data-br-focus="true"] body[data-betterread-preview] :where(.readerTopBar, .readerFooter, .readerControls) {
-  opacity: 0.08 !important;
+html[data-br-enabled="true"][data-br-focus="true"][data-br-focus-hidden="true"] body.wr_page_reader :where(.readerTopBar, .readerHeaderButton, .readerFooter, [class*="readerTopBar"], [class*="readerFooter"]),
+html[data-br-enabled="true"][data-br-focus="true"][data-br-focus-hidden="true"] body[data-betterread-preview] :where(.readerTopBar, .readerFooter) {
+  opacity: 0 !important;
+  pointer-events: none !important;
   transition: opacity 180ms ease !important;
 }
 
-html[data-br-enabled="true"][data-br-autohide="true"] body.wr_page_reader :where(.readerTopBar, .readerFooter, .readerControls, [class*="readerTopBar"], [class*="readerFooter"], [class*="readerControls"]):hover,
-html[data-br-enabled="true"][data-br-autohide="true"] body[data-betterread-preview] :where(.readerTopBar, .readerFooter, .readerControls):hover {
-  opacity: 1 !important;
+html[data-br-enabled="true"][data-br-autohide="true"][data-br-controls-hidden="true"] body.wr_page_reader .readerControls,
+html[data-br-enabled="true"][data-br-autohide="true"][data-br-controls-hidden="true"] body[data-betterread-preview] .readerControls {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translate(18px, -50%) !important;
+  transition: opacity 180ms ease, transform 180ms ease !important;
 }
 
 html[data-br-enabled="true"][data-br-line-focus="true"] body.wr_page_reader :where(.readerChapterContent, [class*="readerChapterContent"], [class*="chapterContent"]) :where(p, h1, h2, h3, h4, li, blockquote),
@@ -538,10 +665,6 @@ html[data-br-enabled="true"][data-br-focus="true"] #betterread-chapter-chip {
 }
 
 @media (max-width: 720px) {
-  html[data-br-enabled="true"] body.wr_page_reader :where(.readerChapterContent, [class*="readerChapterContent"], [class*="chapterContent"]),
-  html[data-br-enabled="true"] body[data-betterread-preview] .readerChapterContent {
-    width: calc(100vw - 32px) !important;
-  }
   #betterread-chapter-chip { max-width: calc(100vw - 104px); }
 }
 
@@ -556,6 +679,20 @@ html[data-br-enabled="true"][data-br-focus="true"] #betterread-chapter-chip {
   var PANEL_CSS = String.raw`
 :host {
   all: initial;
+  --panel-bg: #f8faf9;
+  --panel-surface: #ffffff;
+  --panel-surface-2: #eef3f1;
+  --panel-text: #18211e;
+  --panel-muted: #68736e;
+  --panel-border: rgba(24, 45, 37, 0.13);
+  --panel-accent: #2f8b6d;
+  --panel-launcher: #17241f;
+  --panel-shadow: rgba(22, 37, 31, .2);
+  color: var(--panel-text);
+  color-scheme: light;
+  font: 14px/1.45 "PingFang SC", "Microsoft YaHei", ui-sans-serif, system-ui, sans-serif;
+}
+:host([data-ui-theme="dark"]) {
   --panel-bg: #111715;
   --panel-surface: #19211e;
   --panel-surface-2: #202a26;
@@ -563,8 +700,9 @@ html[data-br-enabled="true"][data-br-focus="true"] #betterread-chapter-chip {
   --panel-muted: #a1afa9;
   --panel-border: rgba(229, 244, 237, 0.12);
   --panel-accent: #65c6a5;
-  color: var(--panel-text);
-  font: 14px/1.45 "PingFang SC", "Microsoft YaHei", ui-sans-serif, system-ui, sans-serif;
+  --panel-launcher: #16211d;
+  --panel-shadow: rgba(0, 0, 0, .42);
+  color-scheme: dark;
 }
 *, *::before, *::after { box-sizing: border-box; }
 button, input, select { font: inherit; }
@@ -581,12 +719,13 @@ button { color: inherit; }
   padding: 0;
   border: 1px solid rgba(255,255,255,.18);
   border-radius: 14px;
-  background: #16211d;
+  color: #edf4f0;
+  background: var(--panel-launcher);
   box-shadow: 0 12px 36px rgba(0, 0, 0, .24);
   cursor: pointer;
   transition: transform 150ms ease, background 150ms ease;
 }
-.launcher:hover { transform: translateY(-2px); background: #1c2c26; }
+.launcher:hover { transform: translateY(-2px); filter: brightness(1.12); }
 .launcher:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible {
   outline: 2px solid var(--panel-accent);
   outline-offset: 2px;
@@ -605,7 +744,7 @@ button { color: inherit; }
   background: color-mix(in srgb, var(--panel-bg) 96%, transparent);
   border: 1px solid var(--panel-border);
   border-radius: 18px;
-  box-shadow: 0 24px 80px rgba(0,0,0,.42);
+  box-shadow: 0 24px 80px var(--panel-shadow);
   backdrop-filter: blur(22px) saturate(1.2);
 }
 .panel[hidden] { display: none; }
@@ -730,25 +869,33 @@ input[type="range"] {
 .switch input:focus-visible + span { outline: 2px solid var(--panel-accent); outline-offset: 2px; }
 .switch input:disabled + span { opacity: .4; cursor: not-allowed; }
 .footer {
+  position: sticky;
+  bottom: -14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 4px 2px 2px;
+  margin: 0 -14px -14px;
+  padding: 12px 14px;
+  background: color-mix(in srgb, var(--panel-bg) 96%, transparent);
+  border-top: 1px solid var(--panel-border);
+  backdrop-filter: blur(18px);
 }
 .scope { color: var(--panel-muted); font-size: 11px; }
 .reset {
   min-height: 34px;
-  padding: 0 11px;
+  padding: 0 13px;
   border: 1px solid var(--panel-border);
   border-radius: 8px;
-  background: transparent;
+  color: var(--panel-accent);
+  background: var(--panel-surface);
+  font-weight: 650;
   cursor: pointer;
 }
 .reset:hover { background: var(--panel-surface-2); }
 @media (max-width: 560px) {
   .launcher { right: 16px; bottom: 16px; }
-  .panel { right: 16px; bottom: 70px; max-height: calc(100vh - 94px); }
+  .panel { right: 16px; left: 16px; bottom: 70px; width: auto; max-height: calc(100vh - 94px); }
 }
 @media (prefers-reduced-motion: reduce) { * { transition-duration: .01ms !important; } }
 `;
@@ -759,7 +906,7 @@ input[type="range"] {
   <section class="panel" role="dialog" aria-label="BetterRead 阅读设置" hidden>
     <header class="header">
       <div class="mark">B</div>
-      <div class="heading"><h2 class="title">BetterRead</h2><p class="subtitle">微信读书体验增强 · v0.1.0</p></div>
+      <div class="heading"><h2 class="title">BetterRead</h2><p class="subtitle">微信读书体验增强 · v${"0.1.4"}</p></div>
       <button class="icon-button" type="button" data-action="close" aria-label="关闭设置">✕</button>
     </header>
     <div class="content">
@@ -773,13 +920,17 @@ input[type="range"] {
           <div class="switch-copy"><span class="switch-title">仅应用于本书</span><span class="switch-note">为当前书籍保存独立设置</span></div>
           <label class="switch"><input type="checkbox" name="bookScoped"><span></span></label>
         </div>
+        <label class="field"><span class="field-label">面板外观</span>
+          <select name="uiTheme"><option value="system">跟随系统</option><option value="light">浅色</option><option value="dark">深色</option></select>
+        </label>
       </section>
 
       <section class="section">
-        <h3 class="section-title">主题</h3>
+        <h3 class="section-title">正文主题</h3>
         <label class="field"><span class="field-label">配色</span>
           <select name="theme">
-            <option value="paper">纸张白</option><option value="sepia">暖黄</option><option value="forest">护眼绿</option>
+            <option value="paper">纸张白</option><option value="sepia">暖黄</option><option value="parchment">羊皮纸</option>
+            <option value="bean">豆沙</option><option value="forest">护眼绿</option><option value="midnight">月夜蓝</option>
             <option value="dark">深色</option><option value="oled">OLED 黑</option><option value="system">跟随系统</option><option value="custom">自定义</option>
           </select>
         </label>
@@ -788,31 +939,19 @@ input[type="range"] {
           <label>正文<input type="color" name="customText"></label>
           <label>强调<input type="color" name="accent"></label>
         </div>
-      </section>
-
-      <section class="section">
-        <h3 class="section-title">排版</h3>
-        <label class="field"><span class="field-label">字体</span>
-          <select name="font"><option value="system-serif">系统宋体</option><option value="system-sans">系统黑体</option><option value="source-serif">思源宋体</option><option value="lxgw">霞鹜文楷</option></select>
-        </label>
-        <label class="field"><span class="field-head"><span class="field-label">字号</span><output class="field-value" data-output="fontSize"></output></span><input type="range" name="fontSize" min="14" max="30" step="1"></label>
-        <label class="field"><span class="field-head"><span class="field-label">行高</span><output class="field-value" data-output="lineHeight"></output></span><input type="range" name="lineHeight" min="1.4" max="2.5" step="0.05"></label>
-        <label class="field"><span class="field-head"><span class="field-label">字间距</span><output class="field-value" data-output="letterSpacing"></output></span><input type="range" name="letterSpacing" min="0" max="0.12" step="0.01"></label>
-        <label class="field"><span class="field-head"><span class="field-label">段落间距</span><output class="field-value" data-output="paragraphSpacing"></output></span><input type="range" name="paragraphSpacing" min="0.4" max="2.4" step="0.1"></label>
-        <label class="field"><span class="field-head"><span class="field-label">阅读栏宽度</span><output class="field-value" data-output="contentWidth"></output></span><input type="range" name="contentWidth" min="560" max="1080" step="20"></label>
-        <label class="field"><span class="field-label">对齐方式</span><select name="textAlign"><option value="justify">两端对齐</option><option value="left">左对齐</option></select></label>
+        <p class="switch-note">仅调整配色；字体、字号、行距和版心继续使用微信读书设置。</p>
       </section>
 
       <section class="section">
         <h3 class="section-title">阅读辅助</h3>
-        <div class="switch-row"><div class="switch-copy"><span class="switch-title">沉浸模式</span><span class="switch-note">弱化界面并显示章节提示</span></div><label class="switch"><input type="checkbox" name="focusMode"><span></span></label></div>
-        <div class="switch-row"><div class="switch-copy"><span class="switch-title">自动隐藏控件</span><span class="switch-note">悬停时恢复显示</span></div><label class="switch"><input type="checkbox" name="autoHideControls"><span></span></label></div>
+        <div class="switch-row"><div class="switch-copy"><span class="switch-title">沉浸模式</span><span class="switch-note">下滑隐藏顶部与页脚，上滑立即显示</span></div><label class="switch"><input type="checkbox" name="focusMode"><span></span></label></div>
+        <div class="switch-row"><div class="switch-copy"><span class="switch-title">自动隐藏工具栏</span><span class="switch-note">闲置 1.5 秒后隐藏，移动鼠标即恢复</span></div><label class="switch"><input type="checkbox" name="autoHideControls"><span></span></label></div>
         <div class="switch-row"><div class="switch-copy"><span class="switch-title">顶部阅读进度</span></div><label class="switch"><input type="checkbox" name="showProgress"><span></span></label></div>
         <div class="switch-row"><div class="switch-copy"><span class="switch-title">段落聚焦</span><span class="switch-note">移动鼠标突出当前段落</span></div><label class="switch"><input type="checkbox" name="lineFocus"><span></span></label></div>
         <div class="switch-row"><div class="switch-copy"><span class="switch-title">启用快捷键</span><span class="switch-note">Alt+B / Alt+T / Alt+F / Alt+0</span></div><label class="switch"><input type="checkbox" name="shortcuts"><span></span></label></div>
       </section>
 
-      <footer class="footer"><span class="scope" data-scope-label>当前：全局设置</span><button class="reset" type="button" data-action="reset">恢复默认</button></footer>
+      <footer class="footer"><span class="scope" data-scope-label>当前：全局设置</span><button class="reset" type="button" data-action="reset">恢复当前默认</button></footer>
     </div>
   </section>
 `;
@@ -831,6 +970,7 @@ input[type="range"] {
       document.addEventListener("keydown", (event) => {
         if (event.key === "Escape" && this.isOpen()) this.close();
       });
+      this.media.addEventListener("change", this.onSchemeChange);
       this.syncFields();
     }
     host = document.createElement("div");
@@ -839,6 +979,8 @@ input[type="range"] {
     settings;
     bookId = null;
     bookScoped = false;
+    media = matchMedia("(prefers-color-scheme: dark)");
+    onSchemeChange = () => this.updatePanelTheme();
     mount() {
       document.body.append(this.host);
     }
@@ -883,6 +1025,9 @@ input[type="range"] {
         case "enabled":
           next.enabled = checked;
           break;
+        case "uiTheme":
+          next.uiTheme = input.value;
+          break;
         case "theme":
           next.theme = input.value;
           break;
@@ -894,27 +1039,6 @@ input[type="range"] {
           break;
         case "accent":
           next.accent = input.value;
-          break;
-        case "font":
-          next.typography.font = input.value;
-          break;
-        case "fontSize":
-          next.typography.fontSize = Number(input.value);
-          break;
-        case "lineHeight":
-          next.typography.lineHeight = Number(input.value);
-          break;
-        case "letterSpacing":
-          next.typography.letterSpacing = Number(input.value);
-          break;
-        case "paragraphSpacing":
-          next.typography.paragraphSpacing = Number(input.value);
-          break;
-        case "contentWidth":
-          next.typography.contentWidth = Number(input.value);
-          break;
-        case "textAlign":
-          next.typography.textAlign = input.value;
           break;
         case "focusMode":
           next.focusMode = checked;
@@ -935,6 +1059,7 @@ input[type="range"] {
           return;
       }
       this.settings = next;
+      this.updatePanelTheme();
       this.syncDynamicFields();
       this.options.onChange(copySettings(next));
     }
@@ -946,18 +1071,12 @@ input[type="range"] {
         else input.value = String(value);
       };
       setValue2("enabled", this.settings.enabled);
+      setValue2("uiTheme", this.settings.uiTheme);
       setValue2("bookScoped", this.bookScoped);
       setValue2("theme", this.settings.theme);
       setValue2("customBackground", this.settings.customBackground);
       setValue2("customText", this.settings.customText);
       setValue2("accent", this.settings.accent);
-      setValue2("font", this.settings.typography.font);
-      setValue2("fontSize", this.settings.typography.fontSize);
-      setValue2("lineHeight", this.settings.typography.lineHeight);
-      setValue2("letterSpacing", this.settings.typography.letterSpacing);
-      setValue2("paragraphSpacing", this.settings.typography.paragraphSpacing);
-      setValue2("contentWidth", this.settings.typography.contentWidth);
-      setValue2("textAlign", this.settings.typography.textAlign);
       setValue2("focusMode", this.settings.focusMode);
       setValue2("autoHideControls", this.settings.autoHideControls);
       setValue2("showProgress", this.settings.showProgress);
@@ -965,22 +1084,15 @@ input[type="range"] {
       setValue2("shortcuts", this.settings.shortcuts);
       const scope = this.root.querySelector("[name='bookScoped']");
       if (scope) scope.disabled = !this.bookId;
+      this.updatePanelTheme();
       this.syncDynamicFields();
+    }
+    updatePanelTheme() {
+      this.host.dataset.uiTheme = this.settings.uiTheme === "system" ? this.media.matches ? "dark" : "light" : this.settings.uiTheme;
     }
     syncDynamicFields() {
       const customColors = this.root.querySelector("[data-custom-colors]");
       if (customColors) customColors.hidden = this.settings.theme !== "custom";
-      const values = {
-        fontSize: `${this.settings.typography.fontSize}px`,
-        lineHeight: this.settings.typography.lineHeight.toFixed(2),
-        letterSpacing: `${this.settings.typography.letterSpacing.toFixed(2)}em`,
-        paragraphSpacing: `${this.settings.typography.paragraphSpacing.toFixed(1)}em`,
-        contentWidth: `${this.settings.typography.contentWidth}px`
-      };
-      for (const [name, value] of Object.entries(values)) {
-        const output = this.root.querySelector(`[data-output="${name}"]`);
-        if (output) output.value = value;
-      }
       const label = this.root.querySelector("[data-scope-label]");
       if (label) label.textContent = this.bookScoped ? "当前：本书独立设置" : "当前：全局设置";
     }
@@ -1010,11 +1122,13 @@ input[type="range"] {
   var settings = loadResolvedSettings(currentBookId);
   var appearance = new AppearanceController();
   var readingAids = new ReadingAidsController();
+  var nativeTheme = new NativeReaderThemeController();
   var panel = null;
   appearance.apply(settings);
   function apply(next, persist = true) {
     settings = copySettings(next);
     appearance.apply(settings);
+    nativeTheme.apply(settings);
     readingAids.apply(settings);
     panel?.setState(settings, bookScoped, currentBookId);
     if (persist) saveScopedSettings(currentBookId, bookScoped, settings);
@@ -1042,7 +1156,7 @@ input[type="range"] {
     apply(loadResolvedSettings(currentBookId), false);
   }
   function cycleTheme() {
-    const order = ["paper", "sepia", "forest", "dark", "oled", "system"];
+    const order = ["paper", "sepia", "parchment", "bean", "forest", "midnight", "dark", "oled", "system"];
     const index = order.indexOf(settings.theme);
     apply({ ...settings, theme: order[(index + 1) % order.length] ?? "paper" });
   }

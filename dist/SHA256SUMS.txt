@@ -1,0 +1,1 @@
+36ca7443b517d9fff37a51c3096a5e15f5c80bc01d31183006a7d0fef6bb6a39  better-read.user.js
