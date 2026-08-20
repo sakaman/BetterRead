@@ -1,0 +1,20 @@
+{
+  "name": "better-read",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.19.0",
+  "description": "A privacy-friendly Tampermonkey enhancement for the WeRead web reader.",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "check": "tsc --noEmit",
+    "test": "node --experimental-strip-types --test tests/settings.test.ts tests/storage.test.ts tests/platform.test.ts",
+    "verify": "pnpm run check && pnpm run test && pnpm run build",
+    "preview": "node scripts/serve-preview.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "esbuild": "^0.25.0",
+    "typescript": "^5.9.0"
+  }
+}

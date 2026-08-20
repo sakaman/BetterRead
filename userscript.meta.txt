@@ -1,0 +1,18 @@
+// ==UserScript==
+// @name         BetterRead - 微信读书体验增强
+// @namespace    https://betterread.local/
+// @version      0.1.0
+// @description  为微信读书网页版提供主题、排版、沉浸阅读和进度增强。
+// @author       BetterRead
+// @homepageURL  https://github.com/sakaman/BetterRead
+// @supportURL   https://github.com/sakaman/BetterRead/issues
+// @downloadURL  https://raw.githubusercontent.com/sakaman/BetterRead/main/dist/better-read.user.js
+// @updateURL    https://raw.githubusercontent.com/sakaman/BetterRead/main/dist/better-read.user.js
+// @match        https://weread.qq.com/web/reader/*
+// @run-at       document-start
+// @grant        GM_addStyle
+// @grant        GM_getValue
+// @grant        GM_setValue
+// @grant        GM_deleteValue
+// @grant        GM_registerMenuCommand
+// ==/UserScript==
