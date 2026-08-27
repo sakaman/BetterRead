@@ -275,7 +275,7 @@ const PANEL_HTML = `
 
       <section class="section">
         <h3 class="section-title">阅读辅助</h3>
-        <div class="switch-row"><div class="switch-copy"><span class="switch-title">沉浸模式</span><span class="switch-note">下滑隐藏顶部与页脚，上滑立即显示</span></div><label class="switch"><input type="checkbox" name="focusMode"><span></span></label></div>
+        <div class="switch-row"><div class="switch-copy"><span class="switch-title">沉浸模式</span><span class="switch-note">下滑隐藏顶部导航，上滑立即显示</span></div><label class="switch"><input type="checkbox" name="focusMode"><span></span></label></div>
         <div class="switch-row"><div class="switch-copy"><span class="switch-title">自动隐藏工具栏</span><span class="switch-note">闲置 1.5 秒后隐藏，移动鼠标即恢复</span></div><label class="switch"><input type="checkbox" name="autoHideControls"><span></span></label></div>
         <div class="switch-row"><div class="switch-copy"><span class="switch-title">顶部阅读进度</span></div><label class="switch"><input type="checkbox" name="showProgress"><span></span></label></div>
         <div class="switch-row"><div class="switch-copy"><span class="switch-title">段落聚焦</span><span class="switch-note">移动鼠标突出当前段落</span></div><label class="switch"><input type="checkbox" name="lineFocus"><span></span></label></div>

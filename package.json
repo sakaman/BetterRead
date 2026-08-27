@@ -8,7 +8,7 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "check": "tsc --noEmit",
-    "test": "node --experimental-strip-types --test tests/settings.test.ts tests/storage.test.ts tests/platform.test.ts",
+    "test": "node --experimental-strip-types --test tests/settings.test.ts tests/storage.test.ts tests/platform.test.ts tests/reader-css.test.ts",
     "verify": "pnpm run check && pnpm run test && pnpm run build",
     "preview": "node scripts/serve-preview.mjs"
   },

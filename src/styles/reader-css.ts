@@ -129,8 +129,8 @@ html[data-br-enabled="true"][data-br-theme="oled"] body[data-betterread-preview]
   filter: brightness(0.9) contrast(0.96);
 }
 
-html[data-br-enabled="true"][data-br-focus="true"][data-br-focus-hidden="true"] body.wr_page_reader :where(.readerTopBar, .readerHeaderButton, .readerFooter, [class*="readerTopBar"], [class*="readerFooter"]),
-html[data-br-enabled="true"][data-br-focus="true"][data-br-focus-hidden="true"] body[data-betterread-preview] :where(.readerTopBar, .readerFooter) {
+html[data-br-enabled="true"][data-br-focus="true"][data-br-focus-hidden="true"] body.wr_page_reader :where(.readerTopBar, .readerHeaderButton, [class*="readerTopBar"]),
+html[data-br-enabled="true"][data-br-focus="true"][data-br-focus-hidden="true"] body[data-betterread-preview] .readerTopBar {
   opacity: 0 !important;
   pointer-events: none !important;
   transition: opacity 180ms ease !important;
