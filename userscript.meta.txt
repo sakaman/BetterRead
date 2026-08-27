@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BetterRead - 微信读书体验增强
 // @namespace    https://betterread.local/
-// @version      0.1.4
+// @version      0.1.5
 // @description  提供正文主题、沉浸阅读和进度增强，并保留微信读书原生排版。
 // @author       BetterRead
 // @homepageURL  https://github.com/sakaman/BetterRead

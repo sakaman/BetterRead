@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BetterRead - 微信读书体验增强
 // @namespace    https://betterread.local/
-// @version      0.1.4
+// @version      0.1.5
 // @description  提供正文主题、沉浸阅读和进度增强，并保留微信读书原生排版。
 // @author       BetterRead
 // @homepageURL  https://github.com/sakaman/BetterRead
@@ -590,8 +590,8 @@ html[data-br-enabled="true"][data-br-theme="oled"] body[data-betterread-preview]
   filter: brightness(0.9) contrast(0.96);
 }
 
-html[data-br-enabled="true"][data-br-focus="true"][data-br-focus-hidden="true"] body.wr_page_reader :where(.readerTopBar, .readerHeaderButton, .readerFooter, [class*="readerTopBar"], [class*="readerFooter"]),
-html[data-br-enabled="true"][data-br-focus="true"][data-br-focus-hidden="true"] body[data-betterread-preview] :where(.readerTopBar, .readerFooter) {
+html[data-br-enabled="true"][data-br-focus="true"][data-br-focus-hidden="true"] body.wr_page_reader :where(.readerTopBar, .readerHeaderButton, [class*="readerTopBar"]),
+html[data-br-enabled="true"][data-br-focus="true"][data-br-focus-hidden="true"] body[data-betterread-preview] .readerTopBar {
   opacity: 0 !important;
   pointer-events: none !important;
   transition: opacity 180ms ease !important;
@@ -906,7 +906,7 @@ input[type="range"] {
   <section class="panel" role="dialog" aria-label="BetterRead 阅读设置" hidden>
     <header class="header">
       <div class="mark">B</div>
-      <div class="heading"><h2 class="title">BetterRead</h2><p class="subtitle">微信读书体验增强 · v${"0.1.4"}</p></div>
+      <div class="heading"><h2 class="title">BetterRead</h2><p class="subtitle">微信读书体验增强 · v${"0.1.5"}</p></div>
       <button class="icon-button" type="button" data-action="close" aria-label="关闭设置">✕</button>
     </header>
     <div class="content">
@@ -944,7 +944,7 @@ input[type="range"] {
 
       <section class="section">
         <h3 class="section-title">阅读辅助</h3>
-        <div class="switch-row"><div class="switch-copy"><span class="switch-title">沉浸模式</span><span class="switch-note">下滑隐藏顶部与页脚，上滑立即显示</span></div><label class="switch"><input type="checkbox" name="focusMode"><span></span></label></div>
+        <div class="switch-row"><div class="switch-copy"><span class="switch-title">沉浸模式</span><span class="switch-note">下滑隐藏顶部导航，上滑立即显示</span></div><label class="switch"><input type="checkbox" name="focusMode"><span></span></label></div>
         <div class="switch-row"><div class="switch-copy"><span class="switch-title">自动隐藏工具栏</span><span class="switch-note">闲置 1.5 秒后隐藏，移动鼠标即恢复</span></div><label class="switch"><input type="checkbox" name="autoHideControls"><span></span></label></div>
         <div class="switch-row"><div class="switch-copy"><span class="switch-title">顶部阅读进度</span></div><label class="switch"><input type="checkbox" name="showProgress"><span></span></label></div>
         <div class="switch-row"><div class="switch-copy"><span class="switch-title">段落聚焦</span><span class="switch-note">移动鼠标突出当前段落</span></div><label class="switch"><input type="checkbox" name="lineFocus"><span></span></label></div>
