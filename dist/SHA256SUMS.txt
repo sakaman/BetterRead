@@ -1,1 +1,1 @@
-75f7a8ad0ca4b071beb60abb96f3812659e8a4616b304a595dc4d2883eae5392  better-read.user.js
+75e68469a44c4307747a42beb7597ef58f5da5dafaf2f13d391f5c83be98faa6  better-read.user.js
