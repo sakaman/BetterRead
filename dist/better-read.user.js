@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BetterRead - 微信读书体验增强
 // @namespace    https://betterread.local/
-// @version      0.1.5
+// @version      0.1.6
 // @description  提供正文主题、沉浸阅读和进度增强，并保留微信读书原生排版。
 // @author       BetterRead
 // @homepageURL  https://github.com/sakaman/BetterRead
@@ -238,6 +238,7 @@
   }
   var selectors = {
     readerBody: "body.wr_page_reader",
+    chapterTitle: ".readerTopBar_title_chapter",
     chapter: [
       ".readerChapterContent",
       "[class*='readerChapterContent']",
@@ -253,6 +254,9 @@
       "[class*='readerTopBar']"
     ].join(",")
   };
+  function getNativeChapterTitle(root = document) {
+    return root.querySelector(selectors.chapterTitle)?.textContent?.trim() || "";
+  }
   function findReadingScroller() {
     const scrolling = document.scrollingElement;
     return scrolling instanceof HTMLElement ? scrolling : document.documentElement;
@@ -385,7 +389,9 @@
         if (heading.getBoundingClientRect().top <= 140) current = heading;
         else break;
       }
-      this.chapterChip.textContent = current?.textContent?.trim() || "";
+      const title = current?.textContent?.trim() || getNativeChapterTitle();
+      this.chapterChip.textContent = title;
+      this.chapterChip.hidden = !title;
     }
     destroy() {
       window.removeEventListener("scroll", this.onScroll);
@@ -906,7 +912,7 @@ input[type="range"] {
   <section class="panel" role="dialog" aria-label="BetterRead 阅读设置" hidden>
     <header class="header">
       <div class="mark">B</div>
-      <div class="heading"><h2 class="title">BetterRead</h2><p class="subtitle">微信读书体验增强 · v${"0.1.5"}</p></div>
+      <div class="heading"><h2 class="title">BetterRead</h2><p class="subtitle">微信读书体验增强 · v${"0.1.6"}</p></div>
       <button class="icon-button" type="button" data-action="close" aria-label="关闭设置">✕</button>
     </header>
     <div class="content">
