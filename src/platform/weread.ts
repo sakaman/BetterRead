@@ -10,6 +10,7 @@ export function isReaderPage(pathname = location.pathname): boolean {
 
 export const selectors = {
   readerBody: "body.wr_page_reader",
+  chapterTitle: ".readerTopBar_title_chapter",
   chapter: [
     ".readerChapterContent",
     "[class*='readerChapterContent']",
@@ -25,6 +26,10 @@ export const selectors = {
     "[class*='readerTopBar']",
   ].join(","),
 } as const;
+
+export function getNativeChapterTitle(root: ParentNode = document): string {
+  return root.querySelector(selectors.chapterTitle)?.textContent?.trim() || "";
+}
 
 export function findReadingScroller(): HTMLElement {
   const scrolling = document.scrollingElement;

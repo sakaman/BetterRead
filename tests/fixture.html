@@ -15,8 +15,8 @@
     .readerControls { position: fixed; right: 26px; top: 50%; display: grid; gap: 8px; transform: translateY(-50%); }
     .readerControls button { width: 42px; height: 42px; border: 1px solid rgba(0,0,0,.1); border-radius: 10px; color: #49515c; background: #fff; box-shadow: 0 7px 20px rgba(0,0,0,.07); }
     .readerChapterContent { width: min(720px, calc(100vw - 48px)); margin: 64px auto 140px; font: 18px/1.8 ui-serif, "Songti SC", serif; }
-    .readerChapterContent h1 { margin: 0 0 52px; font-size: 32px; text-align: center; }
-    .readerChapterContent h2 { margin: 56px 0 24px; font-size: 23px; }
+    .fixtureChapterTitle { margin: 0 0 52px; font-size: 32px; font-weight: 700; text-align: center; }
+    .fixtureSectionTitle { margin: 56px 0 24px; font-size: 23px; font-weight: 700; }
     .readerChapterContent p { margin: 0 0 1em; }
     .readerChapterContent blockquote { margin: 28px 0; padding: 12px 18px; color: #5f6873; background: #eceff2; }
     .readerFooter { padding: 24px; color: #838b95; text-align: center; }
@@ -25,17 +25,17 @@
 </head>
 <body class="wr_page_reader wr_Desktop wr_whiteTheme wr_reader_font_size_level_2" data-betterread-preview data-betterread-book="fixture-book">
   <div class="app_content">
-  <header class="readerTopBar"><strong>BetterRead 示例书</strong><span>第二章 · 为阅读留出空间</span></header>
+  <header class="readerTopBar"><strong>BetterRead 示例书</strong><span><span>第二章 · </span><span class="readerTopBar_title_chapter">为阅读留出空间</span></span></header>
   <aside class="readerControls" aria-label="阅读器控件"><button title="目录">目</button><button title="笔记">记</button><button title="字体">字</button><button class="readerControls_item dark" title="深色">夜</button></aside>
   <main class="readerChapterContent fontLevel2">
-    <h1>为阅读留出空间</h1>
+    <div class="fixtureChapterTitle">为阅读留出空间</div>
     <p>好的阅读界面并不试图夺走注意力。它只是把文字安静地放在合适的位置，让眼睛拥有稳定的节奏，也让思考能够自然发生。</p>
     <p>BetterRead 提供舒适的正文主题，同时保持微信读书原生排版。</p>
     <blockquote>界面越安静，文字就越清楚。</blockquote>
-    <h2>一、舒适来自可调节</h2>
+    <div class="fixtureSectionTitle">一、舒适来自可调节</div>
     <p>字体、字号、行距与版心继续使用微信读书自己的设置，脚本不会覆盖它们。</p>
     <p>当前夹具用于验证沉浸模式、自动隐藏工具栏、阅读进度、段落聚焦和本书独立配置等功能。它不包含任何真实书籍或账号数据。</p>
-    <h2>二、增强不应破坏原网页</h2>
+    <div class="fixtureSectionTitle">二、增强不应破坏原网页</div>
     <p>停用脚本后，所有增强样式都应立即失效；目录、批注、选区和图片仍由原网页负责。这样的边界让脚本更容易维护，也更容易在页面改版后定位兼容问题。</p>
     <p>继续向下滚动可以观察顶部进度条。打开沉浸模式后，章节标题会以轻量提示的方式出现在页面上方。</p>
   </main>

@@ -1,5 +1,5 @@
 import type { BetterReadSettings } from "../core/settings.ts";
-import { findReadingScroller, selectors } from "../platform/weread.ts";
+import { findReadingScroller, getNativeChapterTitle, selectors } from "../platform/weread.ts";
 
 export class ReadingAidsController {
   private settings: BetterReadSettings | null = null;
@@ -138,7 +138,9 @@ export class ReadingAidsController {
       if (heading.getBoundingClientRect().top <= 140) current = heading;
       else break;
     }
-    this.chapterChip.textContent = current?.textContent?.trim() || "";
+    const title = current?.textContent?.trim() || getNativeChapterTitle();
+    this.chapterChip.textContent = title;
+    this.chapterChip.hidden = !title;
   }
 
   destroy(): void {
